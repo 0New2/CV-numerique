@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corentin Le Guen · FORGE OS</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#050508;--bg2:#0a0d14;--bg3:#0f1520;--green:#00ff41;--cyan:#00d4ff;--orange:#ff6b35;--red:#ff4444;--text:#b8ffc5;--text-dim:#4a7a55;--border:rgba(0,255,65,0.25);--glow:0 0 12px rgba(0,255,65,0.5);--font-mono:'JetBrains Mono','Courier New',monospace;--font-hud:'Orbitron',monospace;--taskbar-h:42px}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100vw;height:100vh;overflow:hidden;font-family:var(--font-mono);background:#000;color:var(--text);cursor:default}
+    body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:9999}
+    #boot{position:fixed;inset:0;background:#000;z-index:1000;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,60px);transition:opacity .6s}
+    #boot.fade-out{opacity:0;pointer-events:none}
+    #boot-ascii{font-family:var(--font-hud);font-size:clamp(18px,4vw,42px);font-weight:900;color:var(--green);text-shadow:var(--glow);letter-spacing:.1em;margin-bottom:8px}
+    #boot-sub{font-size:11px;color:var(--text-dim);margin-bottom:32px;letter-spacing:.15em}
+    #boot-lines{max-width:640px}
+    .boot-line{font-size:12px;line-height:2;color:var(--text-dim);opacity:0;transform:translateX(-6px);transition:opacity .2s,transform .2s}
+    .boot-line.show{opacity:1;transform:none}
+    .boot-line .ok{color:var(--green);margin-left:6px}
+    .boot-line .warn{color:var(--orange);margin-left:6px}
+    #boot-progress-wrap{margin-top:24px;width:300px;height:2px;background:rgba(0,255,65,.1);border-radius:2px;overflow:hidden}
+    #boot-progress-bar{height:100%;background:var(--green);width:0;box-shadow:var(--glow);transition:width .3s ease}
+    #desktop{position:fixed;inset:0;bottom:var(--taskbar-h);opacity:0;transition:opacity .6s;overflow:hidden}
+    #desktop.show{opacity:1}
+    #desk-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,65,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.025) 1px,transparent 1px);background-size:44px 44px;background-color:var(--bg)}
+    #desk-bg::before{content:'FORGE OS v2.0 // CORENTIN LE GUEN — DÉVELOPPEUR WEB FULL-STACK';position:absolute;bottom:16px;right:20px;font-size:9px;color:rgba(0,255,65,.15);letter-spacing:.2em}
+    #desk-icons{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:14px}
+    .d-icon{display:flex;flex-direction:column;align-items:center;gap:5px;width:72px;padding:7px;border-radius:6px;cursor:pointer;transition:background .15s;user-select:none}
+    .d-icon:hover{background:rgba(0,255,65,.08)}
+    .d-icon-img{width:50px;height:50px;border:1px solid var(--border);border-radius:8px;background:rgba(0,255,65,.06);display:flex;align-items:center;justify-content:center;font-size:26px;transition:box-shadow .2s,border-color .2s}
+    .d-icon:hover .d-icon-img{border-color:rgba(0,255,65,.6);box-shadow:0 0 16px rgba(0,255,65,.2)}
+    .d-icon-label{font-size:9px;color:var(--text);text-align:center}
+    #taskbar{position:fixed;bottom:0;left:0;right:0;height:var(--taskbar-h);background:rgba(5,5,8,.96);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:8px;z-index:500;backdrop-filter:blur(12px)}
+    #tb-logo{font-family:var(--font-hud);font-size:10px;font-weight:700;color:var(--green);text-shadow:var(--glow);white-space:nowrap;margin-right:6px}
+    #tb-sep{width:1px;height:22px;background:var(--border)}
+    #tb-apps{display:flex;gap:4px;flex:1;overflow:hidden}
+    .tb-btn{padding:4px 12px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);background:rgba(0,255,65,.04);border:1px solid transparent;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap}
+    .tb-btn:hover{color:var(--text);background:rgba(0,255,65,.08)}
+    .tb-btn.active{color:var(--green);border-color:var(--border);background:rgba(0,255,65,.1)}
+    .tb-btn.minimized{opacity:.6}
+    #tb-clock{font-size:11px;color:var(--text-dim);white-space:nowrap}
+    .win{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:8px;min-width:320px;min-height:220px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,.7)}
+    .win.focused{border-color:rgba(0,255,65,.5);box-shadow:0 0 0 1px rgba(0,255,65,.12),0 8px 50px rgba(0,0,0,.8),0 0 30px rgba(0,255,65,.06)}
+    .win-bar{display:flex;align-items:center;padding:9px 12px;background:rgba(0,255,65,.04);border-bottom:1px solid var(--border);cursor:grab;gap:10px;flex-shrink:0}
+    .win-bar:active{cursor:grabbing}
+    .win-dots{display:flex;gap:7px}
+    .wd{width:12px;height:12px;border-radius:50%;border:none;cursor:pointer;transition:filter .15s}
+    .wd:hover{filter:brightness(1.3)}
+    .wd-r{background:#ff5f57}.wd-y{background:#ffbd2e}.wd-g{background:#28ca42}
+    .win-title{font-size:11px;color:var(--text-dim);flex:1}
+    .win-body{flex:1;overflow-y:auto;padding:20px;font-size:12.5px;line-height:1.75;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    .win-body::-webkit-scrollbar{width:4px}
+    .win-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+    #mobile{display:none;position:fixed;inset:0;background:#000;overflow:hidden;opacity:0;transition:opacity .6s}
+    #mobile.show{opacity:1}
+    #mob-wallpaper{position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,65,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.02) 1px,transparent 1px);background-size:32px 32px;background-color:var(--bg)}
+    #mob-status{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:10}
+    #mob-time{font-family:var(--font-hud);font-size:14px;font-weight:700;color:var(--green);text-shadow:var(--glow)}
+    .mob-signals{display:flex;gap:8px;font-size:11px;color:var(--text-dim);align-items:center}
+    #mob-home{position:absolute;top:56px;left:0;right:0;bottom:88px;padding:16px 14px;overflow-y:auto}
+    .mob-app-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+    .mob-app{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}
+    .mob-icon{width:58px;height:58px;border-radius:15px;border:1px solid var(--border);background:rgba(0,255,65,.08);display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform .12s,box-shadow .2s}
+    .mob-app:active .mob-icon{transform:scale(.88);box-shadow:0 0 20px rgba(0,255,65,.35)}
+    .mob-app-name{font-size:9.5px;color:var(--text);text-align:center}
+    #mob-dock{position:absolute;bottom:14px;left:16px;right:16px;height:68px;background:rgba(8,10,16,.85);border:1px solid var(--border);border-radius:22px;backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-evenly;padding:0 10px}
+    .mob-dock-app .mob-icon{width:46px;height:46px;border-radius:12px;font-size:22px}
+    #mob-modal{position:absolute;inset:0;z-index:80;background:var(--bg);transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+    #mob-modal.open{transform:translateY(0)}
+    #mob-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:48px 20px 14px;background:rgba(0,255,65,.03);border-bottom:1px solid var(--border)}
+    #mob-modal-ttl{font-size:13px;color:var(--green)}
+    #mob-modal-close{padding:5px 16px;font-family:var(--font-mono);font-size:11px;color:var(--red);background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.4);border-radius:20px;cursor:pointer}
+    #mob-modal-body{flex:1;overflow-y:auto;padding:20px;font-size:12.5px;line-height:1.75;scrollbar-width:none}
+    #mob-modal-body::-webkit-scrollbar{display:none}
+    .app-hdr{font-family:var(--font-hud);font-size:11px;color:var(--green);text-shadow:var(--glow);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);letter-spacing:.12em}
+    .tl{margin-bottom:3px}
+    .prompt{color:var(--green)}.cmt{color:var(--text-dim);font-style:italic}.key{color:var(--cyan)}.val{color:var(--orange)}.str{color:#ffd700}.num{color:#bd93f9}.bool{color:#50fa7b}
+    .cursor::after{content:'█';animation:blink 1s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+    .sep{height:1px;background:var(--border);margin:14px 0}
+    .timeline{position:relative;padding-left:20px}
+    .timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--border)}
+    .tl-item{position:relative;margin-bottom:16px}
+    .tl-dot{position:absolute;left:-18px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(0,255,65,.6)}
+    .tl-dot.dim{background:var(--text-dim);box-shadow:none}
+    .tl-date{font-size:10px;color:var(--text-dim);margin-bottom:2px}
+    .tl-role{font-size:12.5px;color:var(--green);font-weight:600}
+    .tl-org{font-size:11px;color:var(--cyan);margin-bottom:3px}
+    .tl-desc{font-size:11px;color:var(--text-dim);line-height:1.6}
+    .sk-wrap{margin-bottom:11px}
+    .sk-hdr{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11.5px}
+    .sk-bar{height:4px;background:rgba(0,255,65,.1);border-radius:3px;overflow:hidden}
+    .sk-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--cyan));box-shadow:0 0 8px rgba(0,255,65,.4);width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+    .proj-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .proj-card{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:14px;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;text-decoration:none;display:block;color:inherit}
+    .proj-card:hover{border-color:rgba(0,255,65,.6);transform:translateY(-2px);box-shadow:0 0 16px rgba(0,255,65,.12)}
+    .proj-name{color:var(--green);font-size:12.5px;font-weight:700;margin-bottom:6px}
+    .proj-desc{color:var(--text-dim);font-size:10.5px;line-height:1.5}
+    .proj-tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
+    .proj-status{font-size:9px;color:var(--orange);border:1px solid rgba(255,107,53,.35);border-radius:3px;padding:1px 6px;display:inline-block;margin-bottom:6px}
+    .proj-status.ok{color:var(--green);border-color:rgba(0,255,65,.35)}
+    .tag{padding:2px 7px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);border-radius:3px;font-size:9px;color:var(--cyan)}
+    .pf-head{font-family:var(--font-hud);font-size:20px;font-weight:900;color:var(--orange);text-shadow:0 0 20px rgba(255,107,53,.45);margin-bottom:6px}
+    .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+    .price-card{background:var(--bg3);border:1px solid rgba(255,107,53,.25);border-radius:6px;padding:12px}
+    .pc-name{color:var(--orange);font-size:10px;font-weight:700;letter-spacing:.1em}
+    .pc-price{color:#fff;font-size:20px;font-weight:700;margin:4px 0}
+    .pc-desc{color:var(--text-dim);font-size:10px}
+    .clink{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--border);border-radius:5px;margin-bottom:9px;text-decoration:none;color:var(--text);transition:all .15s}
+    .clink:hover{border-color:var(--green);background:rgba(0,255,65,.04);color:var(--green)}
+    .ci{font-size:20px}.ct-title{font-size:12px;font-weight:600}.ct-sub{font-size:10.5px;color:var(--text-dim);margin-top:2px}
+    #t-out{font-size:12px;line-height:1.85}
+    #t-in-line{display:flex;align-items:center;gap:8px;margin-top:10px}
+    #t-prompt{color:var(--green);font-size:12px;white-space:nowrap}
+    #t-input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:12px;flex:1}
+    @media(max-width:768px){#desktop,#taskbar{display:none !important}#mobile{display:block}}
+    @media(min-width:769px){#mobile{display:none !important}}
+    @media(max-width:500px){.proj-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div id="boot">
+  <div id="boot-ascii">⬡ FORGE OS</div>
+  <div id="boot-sub">CORENTIN LE GUEN — DÉVELOPPEUR WEB FULL-STACK</div>
+  <div id="boot-lines"></div>
+  <div id="boot-progress-wrap"><div id="boot-progress-bar"></div></div>
+</div>
+<div id="desktop">
+  <div id="desk-bg"></div>
+  <div id="desk-icons">
+    <div class="d-icon" ondblclick="openApp('whoami')"><div class="d-icon-img">👤</div><div class="d-icon-label">whoami.sh</div></div>
+    <div class="d-icon" ondblclick="openApp('parcours')"><div class="d-icon-img">📋</div><div class="d-icon-label">parcours.log</div></div>
+    <div class="d-icon" ondblclick="openApp('projects')"><div class="d-icon-img">📁</div><div class="d-icon-label">projects/</div></div>
+    <div class="d-icon" ondblclick="openApp('skills')"><div class="d-icon-img">⚡</div><div class="d-icon-label">skills.json</div></div>
+    <div class="d-icon" ondblclick="openApp('pixelforge')"><div class="d-icon-img">🔮</div><div class="d-icon-label">pixel-forge</div></div>
+    <div class="d-icon" ondblclick="openApp('contact')"><div class="d-icon-img">📡</div><div class="d-icon-label">contact.sh</div></div>
+    <div class="d-icon" ondblclick="openApp('terminal')"><div class="d-icon-img" style="font-family:var(--font-mono);font-size:16px;font-weight:700">$_</div><div class="d-icon-label">terminal</div></div>
+  </div>
+</div>
+<div id="taskbar">
+  <div id="tb-logo">⬡ FORGE OS</div>
+  <div id="tb-sep"></div>
+  <div id="tb-apps"></div>
+  <div id="tb-clock">--:--</div>
+</div>
+<div id="mobile">
+  <div id="mob-wallpaper"></div>
+  <div id="mob-status">
+    <div id="mob-time">00:00</div>
+    <div class="mob-signals"><span>▲▲▲</span><span>WiFi</span><span>⬡</span></div>
+  </div>
+  <div id="mob-home">
+    <div class="mob-app-row">
+      <div class="mob-app" onclick="openMobile('whoami')"><div class="mob-icon">👤</div><div class="mob-app-name">whoami</div></div>
+      <div class="mob-app" onclick="openMobile('parcours')"><div class="mob-icon">📋</div><div class="mob-app-name">parcours</div></div>
+      <div class="mob-app" onclick="openMobile('projects')"><div class="mob-icon">📁</div><div class="mob-app-name">projects</div></div>
+      <div class="mob-app" onclick="openMobile('skills')"><div class="mob-icon">⚡</div><div class="mob-app-name">skills</div></div>
+    </div>
+    <div class="mob-app-row">
+      <div class="mob-app" onclick="openMobile('pixelforge')"><div class="mob-icon">🔮</div><div class="mob-app-name">Pixel-Forge</div></div>
+      <div class="mob-app" onclick="openMobile('contact')"><div class="mob-icon">📡</div><div class="mob-app-name">contact</div></div>
+      <div class="mob-app" onclick="openMobile('terminal')"><div class="mob-icon" style="font-family:var(--font-mono);font-size:18px;font-weight:700">$_</div><div class="mob-app-name">terminal</div></div>
+    </div>
+  </div>
+  <div id="mob-dock">
+    <div class="mob-app mob-dock-app" onclick="openMobile('whoami')"><div class="mob-icon">👤</div></div>
+    <div class="mob-app mob-dock-app" onclick="openMobile('projects')"><div class="mob-icon">📁</div></div>
+    <div class="mob-app mob-dock-app" onclick="openMobile('pixelforge')"><div class="mob-icon">🔮</div></div>
+    <div class="mob-app mob-dock-app" onclick="openMobile('contact')"><div class="mob-icon">📡</div></div>
+  </div>
+  <div id="mob-modal">
+    <div id="mob-modal-hdr">
+      <div id="mob-modal-ttl">App</div>
+      <div id="mob-modal-close" onclick="closeMobile()">✕ Fermer</div>
+    </div>
+    <div id="mob-modal-body"></div>
+  </div>
+</div>
+<script>
+const APPS={
+whoami:{title:'~/whoami.sh',w:580,h:470,render(){return`<div class="app-hdr">⬡ WHOAMI.SH — PROFIL</div><div class="tl"><span class="prompt">forge@cv:~$</span> cat profile.txt</div><br><div class="tl"><span class="key">NOM          </span> <span class="str">Corentin Le Guen</span> <span class="cmt">// Coco</span></div><div class="tl"><span class="key">ÂGE          </span> <span class="str">29 ans</span></div><div class="tl"><span class="key">LOCALISATION </span> <span class="str">Neuvy-en-Dunois (28) — Eure-et-Loir 🇫🇷</span></div><div class="tl"><span class="key">EMAIL        </span> <span class="str">lgn.corentin@gmail.com</span></div><div class="tl"><span class="key">TEL          </span> <span class="str">06 21 82 18 15</span></div><div class="tl"><span class="key">STATUS       </span> <span class="bool">Recherche alternance · Bac+3 Fullstack · sept. 2025</span></div><div class="tl"><span class="key">MOBILITÉ     </span> <span class="str">Chartres · Orléans · Île-de-France · Télétravail</span></div><div class="tl"><span class="key">PERMIS       </span> <span class="str">B + véhicule personnel</span></div><div class="sep"></div><div class="tl"><span class="prompt">forge@cv:~$</span> cat pitch.txt</div><br><div class="tl cmt">// Du QSE au code — une reconversion construite sur le terrain</div><br><div class="tl">Master 2 MQSE · plusieurs années en entreprise (SAFRAN, STORENGY,</div><div class="tl">SECOBRA). Un bilan de compétences (août–nov 2025) confirme l'évidence :</div><div class="tl">j'aime construire des choses qui fonctionnent.</div><br><div class="tl">J'ai monté mon propre PC. Puis codé un site pour mon asso paintball,</div><div class="tl">un questionnaire avec API Google, une app mobile React Native.</div><div class="tl">Zéro formation préalable. 100% projets réels, depuis zéro.</div><br><div class="tl">La rigueur QSE — process, docs, gestion de risques — maintenant</div><div class="tl">au service du code. Micro-entrepreneur actif via <span class="str">Pixel-Forge</span>.</div><div class="sep"></div><div class="tl"><span class="prompt">forge@cv:~$</span> cat soft-skills.txt</div><br><div class="tl"><span class="bool">✓</span> <span class="key">Autonomie    </span> autodidacte · 4 projets livrés sans formation</div><div class="tl"><span class="bool">✓</span> <span class="key">Rigueur      </span> background process / gestion risques (SAFRAN, STORENGY)</div><div class="tl"><span class="bool">✓</span> <span class="key">Sens client  </span> micro-entrepreneur actif · interlocuteur unique</div><div class="tl"><span class="bool">✓</span> <span class="key">Concentration</span> endurance longues sessions · background gaming</div><div class="tl"><span class="bool">✓</span> <span class="key">Polyvalence  </span> 5 secteurs différents · adaptation prouvée</div><br><div class="tl"><span class="prompt">forge@cv:~$</span> <span class="cursor"></span></div>`}},
+
+parcours:{title:'~/parcours.log',w:610,h:560,render(){return`<div class="app-hdr">⬡ PARCOURS.LOG — EXPÉRIENCES &amp; FORMATIONS</div><div class="tl"><span class="prompt">forge@cv:~$</span> cat parcours.log</div><br><div style="margin-bottom:20px"><div style="color:var(--orange);font-size:10px;letter-spacing:.1em;margin-bottom:10px">// RECONVERSION NUMÉRIQUE</div><div class="timeline"><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2025 → en cours</div><div class="tl-role">Formation DWWM — Développeur Web &amp; Web Mobile</div><div class="tl-org">RNCP Niveau 5 · Reconversion professionnelle</div><div class="tl-desc">JS ES6 · React · Node.js · SQL · Git · Docker · WordPress · RGPD · Agile/Scrum</div></div><div class="tl-item"><div class="tl-dot"></div><div class="tl-date">2024 → en cours</div><div class="tl-role">Micro-entrepreneur — Pixel-Forge</div><div class="tl-org">Développement web · Services numériques</div><div class="tl-desc">2 clients livrés · site vitrine live · HTML/CSS/JS · WordPress</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-date">Janv. 2024 – Avr. 2024</div><div class="tl-role">Stage – Prothésiste dentaire &amp; Formation CFAO</div><div class="tl-org">INNOVART Chartres / IVOCLAR Annecy</div><div class="tl-desc">Modélisation 3D EXOCAD · Formation usinage PrograMill CAM</div></div></div></div><div style="margin-bottom:20px"><div style="color:var(--text-dim);font-size:10px;letter-spacing:.1em;margin-bottom:10px">// EXPÉRIENCES PROFESSIONNELLES</div><div class="timeline"><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-date">Sept. 2023 – Sept. 2024</div><div class="tl-role">Apprenti Responsable RSE</div><div class="tl-org">SECOBRA Recherche · Maule</div><div class="tl-desc">Mise en place politique RSE · management équipes · définition &amp; suivi KPIs</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-date">Sept. 2022 – Juil. 2023</div><div class="tl-role">Apprenti Responsable SSE</div><div class="tl-org">SAFRAN Aircraft Engines · Gennevilliers</div><div class="tl-desc">Alarmes zone chimique · système gestion des risques · audits 5S</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-date">Nov. 2020 – Sept. 2022</div><div class="tl-role">Apprenti Technicien d'exploitation</div><div class="tl-org">STORENGY · Germigny-sous-Coulombs</div><div class="tl-desc">Référent gestion déchets · logiciel amélioration continue · plans d'actions</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-date">2020</div><div class="tl-role">Surveillant de baignade</div><div class="tl-org">ACH Intérim · Île-de-France</div><div class="tl-desc">Sécurité clients bassin &amp; hors bassin</div></div></div></div><div><div style="color:var(--text-dim);font-size:10px;letter-spacing:.1em;margin-bottom:10px">// FORMATIONS · Université Sorbonne Paris Nord</div><div class="timeline"><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-role">Master 2 — Maintenance, Qualité, Sécurité, Environnement (MQSE)</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-role">Licence Pro — QHSE option Santé Sécurité au Travail</div></div><div class="tl-item"><div class="tl-dot dim"></div><div class="tl-role">DEUG Bac+2 — Sciences de la vie</div></div></div></div>`}},
+
+projects:{title:'~/projects/',w:640,h:500,render(){return`<div class="app-hdr">⬡ PROJECTS/ — 4 RÉALISATIONS</div><div class="tl"><span class="prompt">forge@cv:~/projects$</span> ls -la</div><br><div class="proj-grid"><a class="proj-card" href="https://0new2.github.io/7-Nains-Paintball/" target="_blank"><div class="proj-status ok">✓ Livré</div><div class="proj-name">🎯 7 Nains Paintball</div><div class="proj-desc">Site complet pour mon asso sportive (1997). Design sur mesure, cartes joueurs style FIFA, formulaire réservation, responsive. Premier projet — zéro expérience préalable.</div><div class="proj-tags"><span class="tag">HTML5/CSS3</span><span class="tag">JavaScript</span><span class="tag">Responsive</span><span class="tag">UX/UI</span></div></a><a class="proj-card" href="https://0new2.github.io/Satisfaction-client---INNOVART/" target="_blank"><div class="proj-status ok">✓ Livré</div><div class="proj-name">📊 INNOVART Questionnaire</div><div class="proj-desc">Système de satisfaction pour labo dentaire. Formulaire → Gmail automatique → Google Sheets. Pipeline complet, collecte de données sans friction.</div><div class="proj-tags"><span class="tag">JavaScript</span><span class="tag">API Gmail</span><span class="tag">Google Sheets</span><span class="tag">Automatisation</span></div></a><a class="proj-card" href="https://0new2.github.io/Pixel-Forge/" target="_blank"><div class="proj-status ok">✓ Livré</div><div class="proj-name">🔮 Pixel-Forge</div><div class="proj-desc">Site vitrine de ma micro-entreprise. Grille de prestations, formulaire EmailJS, 2 projets en portfolio. Design + dev from scratch.</div><div class="proj-tags"><span class="tag">HTML/CSS/JS</span><span class="tag">EmailJS</span><span class="tag">Figma</span><span class="tag">GitHub Pages</span></div></a><div class="proj-card" style="cursor:default"><div class="proj-status">⚙ En développement</div><div class="proj-name">🐺 Loup-Garou App</div><div class="proj-desc">App mobile multiplayer 8+ joueurs. Interface Game Master séparée, rôles secrets, synchronisation temps réel Firebase. Projet le plus technique à ce jour.</div><div class="proj-tags"><span class="tag">React Native</span><span class="tag">Expo</span><span class="tag">Firebase</span><span class="tag">Realtime DB</span></div></div></div><br><div class="tl cmt">// Cliquer une carte ouvre le projet dans un nouvel onglet</div>`}},
+
+skills:{title:'~/skills.json',w:560,h:560,
+  render(){
+    const cats=[
+      {name:'frontend',items:[{n:'HTML5 / CSS3',p:85},{n:'JavaScript ES6+',p:78},{n:'React',p:65},{n:'Responsive / UX',p:80}]},
+      {name:'mobile',items:[{n:'React Native / Expo',p:60},{n:'Firebase RTDB',p:55}]},
+      {name:'backend_outils',items:[{n:'Node.js / Express',p:60},{n:'SQL',p:55},{n:'REST APIs',p:65},{n:'Git / GitHub',p:82},{n:'Docker',p:40},{n:'WordPress',p:68}]},
+      {name:'autres',items:[{n:'Figma',p:65},{n:'Prompt Engineering AI',p:85},{n:'Word TOSA 787/1000',p:79},{n:'Anglais TOEIC 860/990',p:86}]},
+    ];
+    return`<div class="app-hdr">⬡ SKILLS.JSON — COMPÉTENCES</div><div class="tl cmt">// Niveaux auto-évalués · formation DWWM en cours</div><br>${cats.map(c=>`<div style="margin-bottom:16px"><div class="tl" style="margin-bottom:6px"><span class="key">"${c.name}"</span><span class="cmt">: {</span></div>${c.items.map(s=>`<div class="sk-wrap" style="margin-left:14px"><div class="sk-hdr"><span class="str">"${s.n}"</span><span class="num">${s.p}%</span></div><div class="sk-bar"><div class="sk-fill" data-pct="${s.p}"></div></div></div>`).join('')}<div class="tl cmt">}</div></div>`).join('')}<div class="sep"></div><div class="tl cmt">// En apprentissage : TypeScript · Tests · CI/CD</div>`;
+  },
+  onOpen(){setTimeout(()=>{document.querySelectorAll('.sk-fill').forEach(el=>{el.style.width=el.dataset.pct+'%'})},120)}
+},
+
+pixelforge:{title:'~/pixel-forge.sh',w:520,h:490,render(){return`<div class="pf-head">◈ PIXEL-FORGE</div><div class="tl" style="color:var(--text-dim);font-size:11px;margin-bottom:4px">Micro-entreprise · Développement web · 2024 →</div><div class="tl" style="color:var(--text-dim);font-size:11px;margin-bottom:16px">📧 crea.pixelforge@gmail.com</div><div class="tl cmt">// Sites web clé en main · Brief → Figma → Dev → Livraison</div><div class="tl cmt">// HTML/CSS/JS · React · WordPress · WooCommerce · Figma</div><div class="price-grid"><div class="price-card"><div class="pc-name">LANDING PAGE</div><div class="pc-price">200€</div><div class="pc-desc">One-page responsive · 1–2 semaines</div></div><div class="price-card"><div class="pc-name">VITRINE</div><div class="pc-price">300€</div><div class="pc-desc">Multi-pages · formulaire · code pur</div></div><div class="price-card"><div class="pc-name">WORDPRESS</div><div class="pc-price">300€</div><div class="pc-desc">CMS · thème perso · formation incluse</div></div><div class="price-card"><div class="pc-name">BOUTIQUE</div><div class="pc-price">450€</div><div class="pc-desc">WooCommerce · Stripe/PayPal</div></div></div><div class="sep"></div><div class="tl"><span class="key">Clients :</span> <span class="str">7 Nains Paintball · INNOVART</span></div><div class="tl"><span class="key">Réponse :</span> <span class="str">sous 24h · interlocuteur unique</span></div><div class="sep"></div><a class="clink" href="https://0new2.github.io/Pixel-Forge/" target="_blank"><span class="ci">🌐</span><div><div class="ct-title">Voir le site Pixel-Forge →</div><div class="ct-sub">0new2.github.io/Pixel-Forge</div></div></a>`}},
+
+contact:{title:'~/contact.sh',w:490,h:420,render(){return`<div class="app-hdr">⬡ CONTACT.SH — ME JOINDRE</div><div class="tl"><span class="prompt">forge@cv:~$</span> ./contact.sh</div><br><a class="clink" href="mailto:lgn.corentin@gmail.com"><span class="ci">📧</span><div><div class="ct-title">Email</div><div class="ct-sub">lgn.corentin@gmail.com</div></div></a><a class="clink" href="tel:0621821815"><span class="ci">📱</span><div><div class="ct-title">Téléphone</div><div class="ct-sub">06 21 82 18 15</div></div></a><a class="clink" href="https://github.com/0New2" target="_blank"><span class="ci">🐙</span><div><div class="ct-title">GitHub</div><div class="ct-sub">github.com/0New2</div></div></a><a class="clink" href="https://www.linkedin.com/in/corentin-le-guen-5860a8171/" target="_blank"><span class="ci">💼</span><div><div class="ct-title">LinkedIn</div><div class="ct-sub">Corentin Le Guen</div></div></a><a class="clink" href="https://0new2.github.io/Pixel-Forge/" target="_blank"><span class="ci">🔮</span><div><div class="ct-title">Pixel-Forge</div><div class="ct-sub">0new2.github.io/Pixel-Forge</div></div></a><div class="sep"></div><div class="tl cmt">// Dispo alternance Bac+3 Fullstack · sept. 2025</div><div class="tl cmt">// Zone : Chartres · Orléans · IDF · Télétravail</div>`}},
+
+terminal:{title:'~/terminal',w:580,h:420,render(){return`<div id="t-out"><div class="tl" style="color:var(--green)">⬡ FORGE OS Terminal v2.0</div><div class="tl cmt">Tapez <span style="color:#ffd700">help</span> pour les commandes.</div><br></div><div id="t-in-line"><span id="t-prompt">forge@cv:~$</span><input id="t-input" type="text" autocomplete="off" spellcheck="false" placeholder="help…"></div>`},onOpen(){setTimeout(()=>{const el=document.getElementById('t-input');if(el){el.focus();el.addEventListener('keydown',termKey)}},100)}}
+};
+
+const CMDS={
+  help:()=>`<span class="key">Commandes :</span>\n  <span class="str">whoami</span>    profil\n  <span class="str">parcours</span>  expériences &amp; formations\n  <span class="str">projects</span>  réalisations\n  <span class="str">skills</span>    compétences\n  <span class="str">contact</span>   me joindre\n  <span class="str">date</span>      date du jour\n  <span class="str">coffee</span>    ☕\n  <span class="str">clear</span>     effacer`,
+  whoami:()=>`<span class="str">Corentin Le Guen</span> · 29 ans · Neuvy-en-Dunois (28)\n  Reconversion dev web · Autodidacte · Micro-entrepreneur Pixel-Forge\n  <span class="cmt">Alternance Bac+3 Fullstack · sept. 2025</span>`,
+  parcours:()=>`<span class="key">Reconversion :</span> <span class="str">DWWM (en cours) · Pixel-Forge (2024→)</span>\n  <span class="key">Avant       :</span> <span class="str">RSE SECOBRA · SSE SAFRAN · Technicien STORENGY</span>\n  <span class="key">Formation   :</span> <span class="str">Master 2 MQSE · Sorbonne Paris Nord</span>`,
+  skills:()=>`<span class="key">Frontend :</span> <span class="str">HTML/CSS · JS ES6+ · React</span>\n  <span class="key">Mobile   :</span> <span class="str">React Native · Expo · Firebase</span>\n  <span class="key">Backend  :</span> <span class="str">Node.js · Express · SQL · REST APIs</span>\n  <span class="key">Outils   :</span> <span class="str">Git · Docker · WordPress · Figma</span>\n  <span class="key">Langues  :</span> <span class="str">Anglais TOEIC 860/990</span>`,
+  projects:()=>`<span class="str">7 Nains Paintball  </span> HTML/CSS/JS ✓ livré\n  <span class="str">INNOVART           </span> JS + Google APIs ✓ livré\n  <span class="str">Pixel-Forge        </span> Site freelance ✓ livré\n  <span class="str">Loup-Garou App     </span> React Native + Firebase ⚙ en dev`,
+  contact:()=>`<span class="key">Email    :</span> <span class="str">lgn.corentin@gmail.com</span>\n  <span class="key">Tel      :</span> <span class="str">06 21 82 18 15</span>\n  <span class="key">GitHub   :</span> <span class="str">github.com/0New2</span>\n  <span class="key">LinkedIn :</span> <span class="str">linkedin.com/in/corentin-le-guen-5860a8171</span>`,
+  date:()=>`<span class="str">${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span>`,
+  coffee:()=>`<span class="str">  ( (\n   ) )\n........\n|      |]\n\\      /\n \`----'</span>\n<span class="cmt">☕ Carburant essentiel</span>`,
+  sudo:()=>`<span class="val">Permission refusée.</span> <span class="cmt">Nice try 😄</span>`,
+  clear:()=>'__CLEAR__'
+};
+
+function termKey(e){
+  if(e.key!=='Enter')return;
+  const inp=document.getElementById('t-input'),out=document.getElementById('t-out');
+  if(!inp||!out)return;
+  const cmd=inp.value.trim().toLowerCase();inp.value='';
+  const row=document.createElement('div');row.className='tl';
+  row.innerHTML=`<span class="prompt">forge@cv:~$</span> ${esc(cmd)}`;out.appendChild(row);
+  if(cmd){
+    const fn=CMDS[cmd]||(()=>`<span class="val">Inconnu :</span> '${esc(cmd)}'. Tapez <span class="str">help</span>.`);
+    const res=fn();
+    if(res==='__CLEAR__'){out.innerHTML='';}
+    else{const rd=document.createElement('div');rd.className='tl';rd.style.marginBottom='6px';rd.innerHTML=res;out.appendChild(rd);}
+  }
+  out.appendChild(document.createElement('br'));out.scrollTop=out.scrollHeight;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+let zTop=100;const wins={};
+function openApp(id){
+  const app=APPS[id];if(!app)return;
+  if(wins[id]){focusWin(id);return;}
+  const offset=Object.keys(wins).length*26;
+  const el=document.createElement('div');el.className='win focused';el.id='win-'+id;
+  el.style.cssText=`z-index:${++zTop};left:${100+offset}px;top:${48+offset}px;width:${app.w||540}px;height:${app.h||400}px`;
+  el.innerHTML=`<div class="win-bar"><div class="win-dots"><button class="wd wd-r" onclick="closeWin('${id}')"></button><button class="wd wd-y" onclick="minWin('${id}')"></button><button class="wd wd-g" onclick="maxWin('${id}')"></button></div><div class="win-title">${app.title}</div></div><div class="win-body">${app.render()}</div>`;
+  el.addEventListener('mousedown',()=>focusWin(id));
+  makeDraggable(el,el.querySelector('.win-bar'));
+  document.getElementById('desktop').appendChild(el);
+  wins[id]={el,minimized:false};updateTB();
+  if(app.onOpen)app.onOpen();
+}
+function focusWin(id){
+  document.querySelectorAll('.win').forEach(w=>w.classList.remove('focused'));
+  const w=wins[id];if(!w)return;
+  w.el.classList.add('focused');w.el.style.zIndex=++zTop;w.el.style.display='flex';w.minimized=false;updateTB();
+}
+function closeWin(id){const w=wins[id];if(w)w.el.remove();delete wins[id];updateTB()}
+function minWin(id){const w=wins[id];if(!w)return;w.el.style.display='none';w.minimized=true;updateTB()}
+function maxWin(id){
+  const w=wins[id];if(!w)return;
+  if(w.el.dataset.maxed){w.el.style.cssText=w.el.dataset.prev;delete w.el.dataset.maxed;}
+  else{w.el.dataset.prev=w.el.style.cssText;w.el.style.cssText=`z-index:${w.el.style.zIndex};left:0;top:0;width:100vw;height:calc(100vh - var(--taskbar-h))`;w.el.dataset.maxed='1';}
+}
+function updateTB(){
+  const c=document.getElementById('tb-apps');c.innerHTML='';
+  Object.entries(wins).forEach(([id,w])=>{
+    const b=document.createElement('button');b.className='tb-btn'+(w.minimized?' minimized':' active');
+    b.textContent=APPS[id].title.replace('~/','');b.onclick=()=>focusWin(id);c.appendChild(b);
+  });
+}
+function makeDraggable(el,handle){
+  let px=0,py=0;
+  handle.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('wd'))return;
+    px=e.clientX-el.offsetLeft;py=e.clientY-el.offsetTop;
+    const mm=ev=>{el.style.left=(ev.clientX-px)+'px';el.style.top=(ev.clientY-py)+'px'};
+    const mu=()=>{document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',mu)};
+    document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);e.preventDefault();
+  });
+}
+function openMobile(id){
+  const app=APPS[id];if(!app)return;
+  document.getElementById('mob-modal-ttl').textContent=app.title;
+  document.getElementById('mob-modal-body').innerHTML=app.render();
+  document.getElementById('mob-modal').classList.add('open');
+  if(app.onOpen)app.onOpen();
+}
+function closeMobile(){document.getElementById('mob-modal').classList.remove('open')}
+
+const BOOT_SEQ=[
+  {t:'[ FORGE OS ]  Kernel initializing...',d:0,s:'ok'},
+  {t:'[ CPU      ]  Processor ready...',d:260,s:'ok'},
+  {t:'[ PROFILE  ]  Corentin Le Guen · 29 ans · Eure-et-Loir',d:500,s:'ok'},
+  {t:'[ STATUS   ]  Alternance Bac+3 Fullstack · sept. 2025',d:720,s:'ok'},
+  {t:'[ SKILLS   ]  JS · React · Node · Firebase · Git',d:920,s:'ok'},
+  {t:'[ PROJECTS ]  7NP · INNOVART · Pixel-Forge · Loup-Garou',d:1100,s:'ok'},
+  {t:'[ FORGE    ]  Pixel-Forge micro-entreprise active',d:1280,s:'ok'},
+  {t:'[ NETWORK  ]  GitHub · LinkedIn · Email ok',d:1460,s:'ok'},
+  {t:'[ COFFEE   ]  Brewing protocol initiated...',d:1640,s:'warn'},
+  {t:'[ SYSTEM   ]  All systems nominal.',d:1820,s:'ok'},
+  {t:'[ FORGE OS ]  Welcome 👋  Double-clic pour ouvrir une appli',d:2020,s:'ok'},
+];
+
+function boot(){
+  const container=document.getElementById('boot-lines');
+  const bar=document.getElementById('boot-progress-bar');
+  const total=BOOT_SEQ.length;
+  BOOT_SEQ.forEach(({t,d,s},i)=>{
+    setTimeout(()=>{
+      const ln=document.createElement('div');ln.className='boot-line';
+      ln.innerHTML=t+(s==='ok'?'  <span class="ok">[  OK  ]</span>':'  <span class="warn">[ WARN ]</span>');
+      container.appendChild(ln);requestAnimationFrame(()=>ln.classList.add('show'));
+      bar.style.width=Math.round(((i+1)/total)*100)+'%';
+    },d);
+  });
+  setTimeout(()=>{
+    document.getElementById('boot').classList.add('fade-out');
+    const mobile=window.innerWidth<=768;
+    setTimeout(()=>{
+      document.getElementById('boot').style.display='none';
+      if(mobile)document.getElementById('mobile').classList.add('show');
+      else document.getElementById('desktop').classList.add('show');
+    },600);
+  },2800);
+}
+function tick(){
+  const t=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const c1=document.getElementById('tb-clock'),c2=document.getElementById('mob-time');
+  if(c1)c1.textContent=t;if(c2)c2.textContent=t;
+}
+tick();setInterval(tick,1000);
+window.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>
