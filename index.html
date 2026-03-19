@@ -188,10 +188,10 @@ projects:{title:'~/projects/',w:640,h:500,render(){return`<div class="app-hdr">�
 skills:{title:'~/skills.json',w:560,h:560,
   render(){
     const cats=[
-      {name:'frontend',items:[{n:'HTML5 / CSS3',p:85},{n:'JavaScript ES6+',p:78},{n:'React',p:65},{n:'Responsive / UX',p:80}]},
-      {name:'mobile',items:[{n:'React Native / Expo',p:60},{n:'Firebase RTDB',p:55}]},
-      {name:'backend_outils',items:[{n:'Node.js / Express',p:60},{n:'SQL',p:55},{n:'REST APIs',p:65},{n:'Git / GitHub',p:82},{n:'Docker',p:40},{n:'WordPress',p:68}]},
-      {name:'autres',items:[{n:'Figma',p:65},{n:'Prompt Engineering AI',p:85},{n:'Word TOSA 787/1000',p:79},{n:'Anglais TOEIC 860/990',p:86}]},
+      {name:'frontend',items:[{n:'HTML5 / CSS3',p:20},{n:'JavaScript ES6+',p:15},{n:'React',p:10},{n:'Responsive / UX',p:18}]},
+      {name:'mobile',items:[{n:'React Native / Expo',p:30},{n:'Firebase RTDB',p:28}]},
+      {name:'backend_outils',items:[{n:'Node.js / Express',p:20},{n:'SQL',p:15},{n:'REST APIs',p:18},{n:'Git / GitHub',p:25},{n:'Docker',p:15},{n:'WordPress',p:28}]},
+      {name:'autres',items:[{n:'Figma',p:40},{n:'Prompt Engineering AI',p:85},{n:'Word TOSA 787/1000',p:79},{n:'Anglais TOEIC 860/990',p:86}]},
     ];
     return`<div class="app-hdr">⬡ SKILLS.JSON — COMPÉTENCES</div><div class="tl cmt">// Niveaux auto-évalués · formation DWWM en cours</div><br>${cats.map(c=>`<div style="margin-bottom:16px"><div class="tl" style="margin-bottom:6px"><span class="key">"${c.name}"</span><span class="cmt">: {</span></div>${c.items.map(s=>`<div class="sk-wrap" style="margin-left:14px"><div class="sk-hdr"><span class="str">"${s.n}"</span><span class="num">${s.p}%</span></div><div class="sk-bar"><div class="sk-fill" data-pct="${s.p}"></div></div></div>`).join('')}<div class="tl cmt">}</div></div>`).join('')}<div class="sep"></div><div class="tl cmt">// En apprentissage : TypeScript · Tests · CI/CD</div>`;
   },
