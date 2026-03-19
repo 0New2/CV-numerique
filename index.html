@@ -52,27 +52,36 @@
     .win-body{flex:1;overflow-y:auto;padding:20px;font-size:12.5px;line-height:1.75;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
     .win-body::-webkit-scrollbar{width:4px}
     .win-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-    #mobile{display:none;position:fixed;inset:0;background:#000;overflow:hidden;opacity:0;transition:opacity .6s}
-    #mobile.show{opacity:1}
-    #mob-wallpaper{position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,65,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,.02) 1px,transparent 1px);background-size:32px 32px;background-color:var(--bg)}
-    #mob-status{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:10}
-    #mob-time{font-family:var(--font-hud);font-size:14px;font-weight:700;color:var(--green);text-shadow:var(--glow)}
-    .mob-signals{display:flex;gap:8px;font-size:11px;color:var(--text-dim);align-items:center}
-    #mob-home{position:absolute;top:56px;left:0;right:0;bottom:88px;padding:16px 14px;overflow-y:auto}
-    .mob-app-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
-    .mob-app{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}
-    .mob-icon{width:58px;height:58px;border-radius:15px;border:1px solid var(--border);background:rgba(0,255,65,.08);display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform .12s,box-shadow .2s}
-    .mob-app:active .mob-icon{transform:scale(.88);box-shadow:0 0 20px rgba(0,255,65,.35)}
-    .mob-app-name{font-size:9.5px;color:var(--text);text-align:center}
-    #mob-dock{position:absolute;bottom:14px;left:16px;right:16px;height:68px;background:rgba(8,10,16,.85);border:1px solid var(--border);border-radius:22px;backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-evenly;padding:0 10px}
-    .mob-dock-app .mob-icon{width:46px;height:46px;border-radius:12px;font-size:22px}
-    #mob-modal{position:absolute;inset:0;z-index:80;background:var(--bg);transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
-    #mob-modal.open{transform:translateY(0)}
-    #mob-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:48px 20px 14px;background:rgba(0,255,65,.03);border-bottom:1px solid var(--border)}
-    #mob-modal-ttl{font-size:13px;color:var(--green)}
-    #mob-modal-close{padding:5px 16px;font-family:var(--font-mono);font-size:11px;color:var(--red);background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.4);border-radius:20px;cursor:pointer}
-    #mob-modal-body{flex:1;overflow-y:auto;padding:20px;font-size:12.5px;line-height:1.75;scrollbar-width:none}
-    #mob-modal-body::-webkit-scrollbar{display:none}
+    #mobile{display:none;position:fixed;inset:0;background:var(--bg);overflow:hidden;opacity:0;transition:opacity .6s;flex-direction:column}
+    #mobile.show{opacity:1;display:flex}
+    #chat-header{flex-shrink:0;padding:48px 18px 14px;background:rgba(0,255,65,.03);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+    #chat-avatar{width:38px;height:38px;border-radius:50%;border:1px solid var(--green);background:rgba(0,255,65,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:var(--glow)}
+    #chat-info{flex:1}
+    #chat-name{font-family:var(--font-hud);font-size:11px;color:var(--green);text-shadow:var(--glow);letter-spacing:.08em}
+    #chat-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
+    #chat-online{font-size:10px;color:var(--text-dim);margin-top:1px}
+    #chat-online::before{content:'⬤ ';color:var(--green);font-size:7px}
+    #chat-messages{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none}
+    #chat-messages::-webkit-scrollbar{display:none}
+    .msg{display:flex;flex-direction:column;max-width:84%;animation:msgIn .22s ease}
+    @keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .msg.bot{align-self:flex-start}
+    .msg.user{align-self:flex-end;align-items:flex-end}
+    .msg-bubble{padding:10px 14px;border-radius:18px;font-size:12.5px;line-height:1.65}
+    .msg.bot .msg-bubble{background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text)}
+    .msg.user .msg-bubble{background:rgba(0,255,65,.1);border:1px solid rgba(0,255,65,.3);border-bottom-right-radius:4px;color:var(--green)}
+    .msg-time{font-size:9px;color:var(--text-dim);margin-top:4px;padding:0 4px}
+    .typing-bubble{background:var(--bg2);border:1px solid var(--border);border-radius:18px;border-bottom-left-radius:4px;padding:12px 16px;display:flex;gap:5px;align-items:center;align-self:flex-start;animation:msgIn .22s ease}
+    .typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);animation:tdot 1.2s ease infinite}
+    .typing-dot:nth-child(2){animation-delay:.2s}
+    .typing-dot:nth-child(3){animation-delay:.4s}
+    @keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+    #chat-suggestions{flex-shrink:0;padding:10px 14px 28px;border-top:1px solid var(--border);background:rgba(5,5,8,.97);backdrop-filter:blur(10px)}
+    #sug-label{font-size:9px;color:var(--text-dim);letter-spacing:.12em;margin-bottom:8px}
+    #sug-chips{display:flex;flex-wrap:wrap;gap:7px}
+    .sug-chip{padding:7px 13px;background:rgba(0,255,65,.05);border:1px solid var(--border);border-radius:20px;font-family:var(--font-mono);font-size:11px;color:var(--text);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent}
+    .sug-chip:active{background:rgba(0,255,65,.18);border-color:var(--green);color:var(--green);transform:scale(.96)}
+    .r-key{color:var(--cyan)}.r-val{color:#ffd700}.r-hi{color:var(--green)}.r-dim{color:var(--text-dim);font-style:italic}.r-tag{display:inline-block;padding:1px 7px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);border-radius:3px;font-size:10px;color:var(--cyan);margin:2px 2px 2px 0}.r-sep{display:block;height:1px;background:var(--border);margin:8px 0}
     .app-hdr{font-family:var(--font-hud);font-size:11px;color:var(--green);text-shadow:var(--glow);margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border);letter-spacing:.12em}
     .tl{margin-bottom:3px}
     .prompt{color:var(--green)}.cmt{color:var(--text-dim);font-style:italic}.key{color:var(--cyan)}.val{color:var(--orange)}.str{color:#ffd700}.num{color:#bd93f9}.bool{color:#50fa7b}
@@ -145,36 +154,18 @@
   <div id="tb-clock">--:--</div>
 </div>
 <div id="mobile">
-  <div id="mob-wallpaper"></div>
-  <div id="mob-status">
-    <div id="mob-time">00:00</div>
-    <div class="mob-signals"><span>▲▲▲</span><span>WiFi</span><span>⬡</span></div>
-  </div>
-  <div id="mob-home">
-    <div class="mob-app-row">
-      <div class="mob-app" onclick="openMobile('whoami')"><div class="mob-icon">👤</div><div class="mob-app-name">whoami</div></div>
-      <div class="mob-app" onclick="openMobile('parcours')"><div class="mob-icon">📋</div><div class="mob-app-name">parcours</div></div>
-      <div class="mob-app" onclick="openMobile('projects')"><div class="mob-icon">📁</div><div class="mob-app-name">projects</div></div>
-      <div class="mob-app" onclick="openMobile('skills')"><div class="mob-icon">⚡</div><div class="mob-app-name">skills</div></div>
-    </div>
-    <div class="mob-app-row">
-      <div class="mob-app" onclick="openMobile('pixelforge')"><div class="mob-icon">🔮</div><div class="mob-app-name">Pixel-Forge</div></div>
-      <div class="mob-app" onclick="openMobile('contact')"><div class="mob-icon">📡</div><div class="mob-app-name">contact</div></div>
-      <div class="mob-app" onclick="openMobile('terminal')"><div class="mob-icon" style="font-family:var(--font-mono);font-size:18px;font-weight:700">$_</div><div class="mob-app-name">terminal</div></div>
+  <div id="chat-header">
+    <div id="chat-avatar">⬡</div>
+    <div id="chat-info">
+      <div id="chat-name">FORGE OS · CV.BOT</div>
+      <div id="chat-sub">Corentin Le Guen — Développeur Web</div>
+      <div id="chat-online">En ligne · répond instantanément</div>
     </div>
   </div>
-  <div id="mob-dock">
-    <div class="mob-app mob-dock-app" onclick="openMobile('whoami')"><div class="mob-icon">👤</div></div>
-    <div class="mob-app mob-dock-app" onclick="openMobile('projects')"><div class="mob-icon">📁</div></div>
-    <div class="mob-app mob-dock-app" onclick="openMobile('pixelforge')"><div class="mob-icon">🔮</div></div>
-    <div class="mob-app mob-dock-app" onclick="openMobile('contact')"><div class="mob-icon">📡</div></div>
-  </div>
-  <div id="mob-modal">
-    <div id="mob-modal-hdr">
-      <div id="mob-modal-ttl">App</div>
-      <div id="mob-modal-close" onclick="closeMobile()">✕ Fermer</div>
-    </div>
-    <div id="mob-modal-body"></div>
+  <div id="chat-messages"></div>
+  <div id="chat-suggestions">
+    <div id="sug-label">QUESTIONS SUGGÉRÉES</div>
+    <div id="sug-chips"></div>
   </div>
 </div>
 <script>
@@ -278,14 +269,115 @@ function makeDraggable(el,handle){
     document.addEventListener('mousemove',mm);document.addEventListener('mouseup',mu);e.preventDefault();
   });
 }
-function openMobile(id){
-  const app=APPS[id];if(!app)return;
-  document.getElementById('mob-modal-ttl').textContent=app.title;
-  document.getElementById('mob-modal-body').innerHTML=app.render();
-  document.getElementById('mob-modal').classList.add('open');
-  if(app.onOpen)app.onOpen();
+/* ══ CHAT BOT MOBILE ══ */
+const CHAT_RESPONSES = {
+  whoami: {
+    q: '👤 Qui es-tu ?',
+    a: `<span class="r-hi">Corentin Le Guen</span> — 29 ans, Neuvy-en-Dunois (28)<span class="r-sep"></span><span class="r-key">Situation :</span> En reconversion vers le dev web depuis 2024. J'ai un Master 2 MQSE (Qualité, Sécurité) mais c'est en montant mon propre PC que tout a commencé.<span class="r-sep"></span>J'ai appris à coder <span class="r-hi">en faisant</span> — site asso, questionnaire avec API Google, app mobile React Native. Zéro formation, 100% projets réels.<span class="r-sep"></span><span class="r-key">Je cherche :</span> une <span class="r-val">alternance Bac+3 Fullstack</span> pour septembre 2025, sur Chartres / Orléans / IDF ou télétravail.`,
+    next: ['skills','projects','parcours','contact']
+  },
+  skills: {
+    q: '⚡ Tes compétences ?',
+    a: `<span class="r-key">Frontend</span><br><span class="r-tag">HTML/CSS</span><span class="r-tag">JavaScript ES6+</span><span class="r-tag">React</span><span class="r-tag">Responsive</span><span class="r-sep"></span><span class="r-key">Mobile</span><br><span class="r-tag">React Native</span><span class="r-tag">Expo</span><span class="r-tag">Firebase RTDB</span><span class="r-sep"></span><span class="r-key">Backend / Outils</span><br><span class="r-tag">Node.js</span><span class="r-tag">SQL</span><span class="r-tag">REST APIs</span><span class="r-tag">Git/GitHub</span><span class="r-tag">Docker</span><span class="r-tag">WordPress</span><span class="r-sep"></span><span class="r-key">Autres</span><br><span class="r-tag">Figma</span><span class="r-tag">Prompt AI</span><span class="r-tag">Anglais TOEIC 860</span><span class="r-sep"></span><span class="r-dim">// En apprentissage actif — formation DWWM en cours</span>`,
+    next: ['projects','parcours','whoami','contact']
+  },
+  projects: {
+    q: '📁 Tes projets ?',
+    a: `<span class="r-hi">🎯 7 Nains Paintball</span> <span class="r-dim">✓ livré</span><br>Site complet pour mon asso sportive. HTML/CSS/JS, cartes FIFA, formulaire résa. Mon tout premier projet.<span class="r-sep"></span><span class="r-hi">📊 INNOVART Questionnaire</span> <span class="r-dim">✓ livré</span><br>Pipeline satisfaction : formulaire → Gmail auto → Google Sheets. Pour un labo dentaire.<span class="r-sep"></span><span class="r-hi">🔮 Pixel-Forge</span> <span class="r-dim">✓ livré</span><br>Site de ma micro-entreprise. EmailJS, portfolio, grille tarifaire.<span class="r-sep"></span><span class="r-hi">🐺 Loup-Garou App</span> <span class="r-dim">⚙ en dev</span><br>App mobile multiplayer React Native + Firebase. Interface Game Master séparée.`,
+    next: ['pixelforge','skills','parcours','contact']
+  },
+  parcours: {
+    q: '📋 Ton parcours ?',
+    a: `<span class="r-val">2025 →</span> <span class="r-hi">Formation DWWM</span> RNCP Niv.5<br><span class="r-dim">JS · React · Node · SQL · Git · Docker · Agile</span><span class="r-sep"></span><span class="r-val">2024 →</span> <span class="r-hi">Pixel-Forge</span> · Micro-entrepreneur<br><span class="r-dim">2 clients livrés, site live</span><span class="r-sep"></span><span class="r-val">2023–24</span> Apprenti RSE · SECOBRA Recherche<span class="r-sep"></span><span class="r-val">2022–23</span> Apprenti SSE · SAFRAN Aircraft Engines<span class="r-sep"></span><span class="r-val">2020–22</span> Apprenti Technicien · STORENGY<span class="r-sep"></span>🎓 <span class="r-hi">Master 2 MQSE</span> · Sorbonne Paris Nord`,
+    next: ['skills','projects','pixelforge','contact']
+  },
+  pixelforge: {
+    q: '🔮 Pixel-Forge ?',
+    a: `<span class="r-hi">Pixel-Forge</span> est ma micro-entreprise de création de sites web.<span class="r-sep"></span><span class="r-key">Prestations :</span><br>• Landing page — <span class="r-val">200€</span><br>• Vitrine multi-pages — <span class="r-val">300€</span><br>• Site WordPress — <span class="r-val">300€</span><br>• Boutique WooCommerce — <span class="r-val">450€</span><span class="r-sep"></span><span class="r-key">Stack :</span> HTML/CSS/JS · React · WordPress · Figma<br><span class="r-key">Clients :</span> 7 Nains Paintball · INNOVART<span class="r-sep"></span>📧 <span class="r-val">crea.pixelforge@gmail.com</span>`,
+    next: ['projects','contact','whoami','skills']
+  },
+  alternance: {
+    q: '🎯 Tu cherches quoi ?',
+    a: `Je cherche une <span class="r-hi">alternance Bac+3 Fullstack</span> pour <span class="r-val">septembre 2025</span>.<span class="r-sep"></span><span class="r-key">Zone :</span> Chartres · Orléans · Île-de-France · Télétravail<span class="r-sep"></span><span class="r-key">Ce que j'apporte :</span><br>• Autonomie prouvée — 4 projets livrés seul<br>• Micro-entrepreneur actif (sens client réel)<br>• Rigueur background QSE appliquée au code<br>• Motivation 100% — pas un pivot par défaut<span class="r-sep"></span><span class="r-dim">// Permis B + véhicule personnel</span>`,
+    next: ['contact','projects','skills','parcours']
+  },
+  contact: {
+    q: '📡 Comment te contacter ?',
+    a: `📧 <a href="mailto:lgn.corentin@gmail.com" style="color:var(--green)">lgn.corentin@gmail.com</a><span class="r-sep"></span>📱 <span class="r-val">06 21 82 18 15</span><span class="r-sep"></span>🐙 <a href="https://github.com/0New2" target="_blank" style="color:var(--cyan)">github.com/0New2</a><span class="r-sep"></span>💼 <a href="https://www.linkedin.com/in/corentin-le-guen-5860a8171/" target="_blank" style="color:var(--cyan)">LinkedIn — Corentin Le Guen</a><span class="r-sep"></span>🔮 <a href="https://0new2.github.io/Pixel-Forge/" target="_blank" style="color:var(--orange)">0new2.github.io/Pixel-Forge</a>`,
+    next: ['whoami','projects','alternance','skills']
+  }
+};
+
+const INITIAL_SUGGESTIONS = ['whoami','skills','projects','alternance'];
+
+function now(){return new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+
+function addMsg(type, html){
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'msg ' + type;
+  el.innerHTML = `<div class="msg-bubble">${html}</div><div class="msg-time">${now()}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
 }
-function closeMobile(){document.getElementById('mob-modal').classList.remove('open')}
+
+function showTyping(){
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'typing-bubble';
+  el.id = 'typing';
+  el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping(){
+  const el = document.getElementById('typing');
+  if(el) el.remove();
+}
+
+function setSuggestions(keys){
+  const chips = document.getElementById('sug-chips');
+  chips.innerHTML = '';
+  keys.forEach(k => {
+    const r = CHAT_RESPONSES[k]; if(!r) return;
+    const chip = document.createElement('div');
+    chip.className = 'sug-chip';
+    chip.textContent = r.q;
+    chip.onclick = () => handleQuestion(k);
+    chips.appendChild(chip);
+  });
+}
+
+let busy = false;
+function handleQuestion(key){
+  if(busy) return;
+  const r = CHAT_RESPONSES[key]; if(!r) return;
+  busy = true;
+  document.getElementById('sug-chips').innerHTML = '';
+  addMsg('user', r.q);
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addMsg('bot', r.a);
+    setSuggestions(r.next);
+    busy = false;
+  }, 900 + Math.random()*400);
+}
+
+function initChat(){
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  setTimeout(()=>{
+    showTyping();
+    setTimeout(()=>{
+      hideTyping();
+      addMsg('bot', `Bonjour 👋 Je suis <span class="r-hi">FORGE OS</span>, le CV interactif de <span class="r-val">Corentin Le Guen</span>.<br><br>Développeur web en reconversion, disponible en <span class="r-hi">alternance Bac+3</span> dès septembre 2025. Qu'est-ce qui vous intéresse ?`);
+      setSuggestions(INITIAL_SUGGESTIONS);
+    }, 1000);
+  }, 400);
+}
 
 const BOOT_SEQ=[
   {t:'[ FORGE OS ]  Kernel initializing...',d:0,s:'ok'},
@@ -315,11 +407,11 @@ function boot(){
   });
   setTimeout(()=>{
     document.getElementById('boot').classList.add('fade-out');
-    const mobile=window.innerWidth<=768;
     setTimeout(()=>{
       document.getElementById('boot').style.display='none';
-      if(mobile)document.getElementById('mobile').classList.add('show');
-      else document.getElementById('desktop').classList.add('show');
+      document.getElementById('desktop').classList.add('show');
+      document.getElementById('mobile').classList.add('show');
+      initChat();
     },600);
   },2800);
 }
